@@ -34,9 +34,12 @@ export const logActivity = async (
     });
   } catch (error) {
     console.error('Failed to log activity:', error);
-    // Depending on NFR3 (Reliability - gracefully handle failures),
-    // we might want to push to a message queue or use a dedicated logging service here.
-    // For now, just log the error.
+    // NFR3 Consideration: The logging mechanism MUST be robust and handle failures gracefully.
+    // Depending on the severity and context, options include:
+    // - Pushing to a dead-letter queue for later processing.
+    // - Using a dedicated, highly available logging service.
+    // - Implementing retry mechanisms with backoff.
+    // For now, logging the error to console ensures the main application flow is not interrupted.
   }
 };
 
