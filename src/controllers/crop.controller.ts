@@ -52,11 +52,36 @@ export const getCropById = async (req: Request, res: Response) => {
 
 export const updateCrop = async (req: Request, res: Response) => {
     try {
-        const crop = await Crop.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const cropId = req.params.id;
+        // Assuming req.user is populated by an authentication middleware
+        const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f'); // Placeholder
+
+        // Fetch the crop before update
+        const cropBeforeUpdate = await Crop.findById(cropId);
+        if (!cropBeforeUpdate) {
+            res.status(404).json({ success: false, message: 'Crop not found' });
+            return;
+        }
+
+        const crop = await Crop.findByIdAndUpdate(cropId, req.body, { new: true, runValidators: true }); // Added runValidators: true
         if (!crop) {
             res.status(404).json({ success: false, message: 'Crop not found' });
             return;
         }
+
+        // Integrate activity logging for Crop update
+        await logActivity(
+            userId,
+            'CROP_UPDATED',
+            'Crop',
+            crop._id,
+            {
+                before: cropBeforeUpdate.toObject(), // Capture 'before' state
+                after: crop.toObject(), // Capture 'after' state
+                changes: req.body, // Capture what was sent in the request body for change context
+            }
+        );
+
         res.status(200).json({ success: true, data: crop });
     } catch (error) {
         res.status(500).json({ success: false, error });
