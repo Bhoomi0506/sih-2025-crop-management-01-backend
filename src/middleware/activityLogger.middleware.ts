@@ -6,6 +6,11 @@ import mongoose from 'mongoose';
 /**
  * Logs an activity to the database.
  * This function can be called from various points in the application (controllers, services, other middleware).
+ *
+ * NFR1 Consideration: It is crucial that this logging operation does NOT significantly impact
+ * the response time of primary user actions. Performance checks should be conducted
+ * to ensure this operation remains fast and asynchronous where possible.
+ *
  * @param userId The ID of the user performing the action.
  * @param action A descriptive string of the action performed.
  * @param entityType The type of entity primarily affected by the action.
