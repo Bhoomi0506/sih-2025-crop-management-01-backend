@@ -90,11 +90,35 @@ export const updateCrop = async (req: Request, res: Response) => {
 
 export const deleteCrop = async (req: Request, res: Response) => {
     try {
-        const crop = await Crop.findByIdAndDelete(req.params.id);
+        const cropId = req.params.id;
+        const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f'); // Placeholder
+
+        // Fetch the crop before deletion
+        const cropToDelete = await Crop.findById(cropId);
+        if (!cropToDelete) {
+            res.status(404).json({ success: false, message: 'Crop not found' });
+            return;
+        }
+
+        const crop = await Crop.findByIdAndDelete(cropId);
+        // This check is redundant if cropToDelete was found, but good practice
         if (!crop) {
             res.status(404).json({ success: false, message: 'Crop not found' });
             return;
         }
+
+        // Integrate activity logging for Crop deletion
+        await logActivity(
+            userId,
+            'CROP_DELETED',
+            'Crop',
+            cropId, // Use the ID of the deleted crop
+            {
+                cropName: cropToDelete.name, // Example detail: name of the deleted crop
+                deletedCropData: cropToDelete.toObject(), // Optionally log full data of deleted crop
+            }
+        );
+
         res.status(200).json({ success: true, data: {} });
     } catch (error) {
         res.status(500).json({ success: false, error });
