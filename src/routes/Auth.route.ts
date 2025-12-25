@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import User from '../models/user.model';
+import { logoutUser } from '../controllers/user.controller'; // Import logoutUser
 // Note: Install bcryptjs and jsonwebtoken for real security
 // import bcrypt from 'bcryptjs';
 // import jwt from 'jsonwebtoken';
@@ -50,5 +51,7 @@ router.post('/login', async (req: Request, res: Response) => {
         res.status(500).json({ success: false, error });
     }
 });
+
+router.post('/logout', logoutUser); // Use the imported logoutUser function
 
 export default router;

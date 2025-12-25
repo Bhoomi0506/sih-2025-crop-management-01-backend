@@ -79,8 +79,31 @@ export const deleteUser = async (req: Request, res: Response) => {
             res.status(404).json({ success: false, message: 'User not found' });
             return;
         }
-        res.status(200).json({ success: true, data: {} });
     } catch (error) {
         res.status(500).json({ success: false, error });
     }
 };
+
+import { logActivity } from '../middleware/activityLogger.middleware';
+import mongoose from 'mongoose';
+
+export const logoutUser = async (req: Request, res: Response) => {
+    try {
+        // Assuming req.user is populated by an authentication middleware
+        const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f'); // Placeholder if req.user is not available yet
+
+        await logActivity(
+            userId,
+            'USER_LOGOUT',
+            'User',
+            userId, // Entity is the user themselves
+            { message: 'User logged out successfully' }
+        );
+
+        res.status(200).json({ success: true, message: 'Logged out successfully' });
+    } catch (error) {
+        console.error('Error logging out and recording activity:', error);
+        res.status(500).json({ success: false, error: 'Internal server error during logout' });
+    }
+};
+
