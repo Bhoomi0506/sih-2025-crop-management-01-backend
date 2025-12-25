@@ -52,11 +52,35 @@ export const getFieldById = async (req: Request, res: Response) => {
 
 export const updateField = async (req: Request, res: Response) => {
     try {
-        const field = await Field.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!field) {
+        const fieldId = req.params.id;
+        const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f'); // Placeholder
+
+        // Fetch the field before update
+        const fieldBeforeUpdate = await Field.findById(fieldId);
+        if (!fieldBeforeUpdate) {
             res.status(404).json({ success: false, message: 'Field not found' });
             return;
         }
+
+        const field = await Field.findByIdAndUpdate(fieldId, req.body, { new: true, runValidators: true });
+        if (!field) { // This check is mostly redundant if fieldBeforeUpdate was found
+            res.status(404).json({ success: false, message: 'Field not found' });
+            return;
+        }
+
+        // Integrate activity logging for Field update
+        await logActivity(
+            userId,
+            'FIELD_UPDATED',
+            'Field',
+            field._id,
+            {
+                before: fieldBeforeUpdate.toObject(), // Capture 'before' state
+                after: field.toObject(), // Capture 'after' state
+                changes: req.body, // Capture what was sent in the request body for change context
+            }
+        );
+
         res.status(200).json({ success: true, data: field });
     } catch (error) {
         res.status(500).json({ success: false, error });
