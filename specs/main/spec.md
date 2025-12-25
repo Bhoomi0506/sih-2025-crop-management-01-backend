@@ -45,3 +45,6 @@ This feature introduces a new `Activity` model to track significant user actions
 - Q: For actions like CROP_UPDATED or FIELD_UPDATED, should the `details` field include the 'before' and 'after' values of the modified fields? → A: Yes.
 - **Details for USER_LOGIN**: MUST include `ipAddress` (string) and `userAgent` (string).
 - **Details for USER_LOGOUT**: SHOULD include `message` (string) indicating successful logout.
+- **Details for CROP_CREATED**: MUST include `cropName` (string) and MAY include other relevant initial crop properties.
+- **Details for CROP_UPDATED**: MUST include `before` (object) and `after` (object) states of the crop, and MAY include `changes` (object) with the specific fields that were updated.
+- **Details for CROP_DELETED**: MUST include `cropName` (string) and MAY include `deletedCropData` (object) with the full data of the deleted crop.
