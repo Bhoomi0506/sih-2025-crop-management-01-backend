@@ -17,7 +17,14 @@ This feature introduces a new `Activity` model to track significant user actions
     *   `entityId`: The ID of the entity affected (if applicable).
     *   `timestamp`: The time the action occurred.
     *   `details`: (Optional) A JSON object containing additional, **action-specific** context. **The specific fields for `details` MUST be defined for each action type during implementation. For update actions (e.g., CROP_UPDATED, FIELD_UPDATED), the `details` MUST include 'before' and 'after' values of the modified fields.**
+*   **FR6:** Provide an API endpoint to retrieve activity logs (e.g., `/api/v1/activities`).
+*   **FR7:** Activity log retrieval MUST support filtering by `userId`, `action`, `entityType`, and date range.
+*   **FR8:** Activity log retrieval MUST support pagination.
 
+## 3. Non-Functional Requirements
+
+*   **NFR1 (Performance):** Logging activities MUST NOT significantly impact the response time of the primary user actions.
+*   **NFR2 (Security):** Access to activity logs MUST be restricted to `admin` users only.
 *   **NFR3 (Reliability):** The logging mechanism should be robust and gracefully handle failures without affecting the core application.
 *   **NFR4 (Data Retention):** Activity logs MUST be retained for a period of 1 year. After this period, logs SHOULD be automatically archived or soft-deleted.
 
@@ -36,3 +43,5 @@ This feature introduces a new `Activity` model to track significant user actions
 - Q: What specific `details` (fields) should be captured within the JSON object for each activity `action` type (e.g., USER_LOGIN, CROP_CREATED, CROP_UPDATED, CROP_DELETED, FIELD_CREATED, FIELD_UPDATED, FIELD_DELETED, USER_LOGOUT)? → A: The specific fields for `details` MUST be defined for each action type during implementation.
 - Q: Should activity logs have a retention policy (e.g., automatically delete older logs), and if so, for how long? → A: 1 year.
 - Q: For actions like CROP_UPDATED or FIELD_UPDATED, should the `details` field include the 'before' and 'after' values of the modified fields? → A: Yes.
+- **Details for USER_LOGIN**: MUST include `ipAddress` (string) and `userAgent` (string).
+- **Details for USER_LOGOUT**: SHOULD include `message` (string) indicating successful logout.
