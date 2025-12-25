@@ -1,0 +1,163 @@
+openapi: 3.0.0
+info:
+  title: Activity Log API
+  version: 1.0.0
+  description: API for retrieving activity logs of user actions.
+servers:
+  - url: /api/v1
+tags:
+  - name: Activities
+    description: User Activity Management
+
+paths:
+  /activities:
+    get:
+      summary: Get a list of activity logs
+      tags:
+        - Activities
+      parameters:
+        - in: query
+          name: userId
+          schema:
+            type: string
+            format: uuid
+          description: Filter activities by user ID.
+        - in: query
+          name: action
+          schema:
+            type: string
+          description: Filter activities by action type (e.g., "USER_LOGIN", "CROP_CREATED").
+        - in: query
+          name: entityType
+          schema:
+            type: string
+          description: Filter activities by the type of entity affected (e.g., "User", "Crop").
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date-time
+          description: Filter activities starting from this date/time.
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date-time
+          description: Filter activities up to this date/time.
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items per page.
+      responses:
+        '200':
+          description: A list of activity logs.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Activities retrieved successfully"
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Activity'
+                  meta:
+                    type: object
+                    properties:
+                      totalDocs:
+                        type: integer
+                      limit:
+                        type: integer
+                      page:
+                        type: integer
+                      totalPages:
+                        type: integer
+                      hasNextPage:
+                        type: boolean
+                      hasPrevPage:
+                        type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (if non-admin tries to access)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    Activity:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: uuid
+          description: Unique identifier for the activity log.
+        userId:
+          type: string
+          format: uuid
+          description: ID of the user who performed the action.
+        action:
+          type: string
+          description: Descriptive string of the action (e.g., "USER_LOGIN").
+        entityType:
+          type: string
+          description: Type of entity affected (e.g., "User", "Crop").
+        entityId:
+          type: string
+          format: uuid
+          nullable: true
+          description: ID of the specific entity affected (optional).
+        details:
+          type: object
+          nullable: true
+          description: Additional context in JSON format.
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the action.
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Error message"
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
