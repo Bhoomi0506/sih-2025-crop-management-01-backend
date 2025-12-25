@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import User from '../models/user.model';
 import { logoutUser } from '../controllers/user.controller'; // Import logoutUser
+import { logActivity } from '../middleware/activityLogger.middleware'; // Import logActivity
 // Note: Install bcryptjs and jsonwebtoken for real security
 // import bcrypt from 'bcryptjs';
 // import jwt from 'jsonwebtoken';
@@ -45,6 +46,21 @@ router.post('/login', async (req: Request, res: Response) => {
         // TODO: Generate Token
         // const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET!, { expiresIn: '1d' });
         const token = 'mock-jwt-token';
+
+        // Integrate activity logging for successful login
+        if (user) {
+            await logActivity(
+                user._id, // userId
+                'USER_LOGIN', // action
+                'User', // entityType
+                user._id, // entityId
+                {
+                    message: 'User logged in successfully',
+                    ipAddress: req.ip, // Capture IP address for login event
+                    userAgent: req.headers['user-agent'], // Capture user agent
+                }
+            );
+        }
 
         res.status(200).json({ success: true, token });
     } catch (error) {
