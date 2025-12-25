@@ -89,11 +89,35 @@ export const updateField = async (req: Request, res: Response) => {
 
 export const deleteField = async (req: Request, res: Response) => {
     try {
-        const field = await Field.findByIdAndDelete(req.params.id);
+        const fieldId = req.params.id;
+        const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f'); // Placeholder
+
+        // Fetch the field before deletion
+        const fieldToDelete = await Field.findById(fieldId);
+        if (!fieldToDelete) {
+            res.status(404).json({ success: false, message: 'Field not found' });
+            return;
+        }
+
+        const field = await Field.findByIdAndDelete(fieldId);
+        // This check is redundant if fieldToDelete was found, but good practice
         if (!field) {
             res.status(404).json({ success: false, message: 'Field not found' });
             return;
         }
+
+        // Integrate activity logging for Field deletion
+        await logActivity(
+            userId,
+            'FIELD_DELETED',
+            'Field',
+            fieldId, // Use the ID of the deleted field
+            {
+                fieldName: fieldToDelete.name, // Example detail: name of the deleted field
+                deletedFieldData: fieldToDelete.toObject(), // Optionally log full data of deleted field
+            }
+        );
+
         res.status(200).json({ success: true, data: {} });
     } catch (error) {
         res.status(500).json({ success: false, error });
