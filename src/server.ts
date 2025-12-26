@@ -1,28 +1,72 @@
-import express from 'express';
-import HTTP_STATUS_OK = module
-import module from "node:module"
+import express, { Request, Response, NextFunction } from 'express';
+import connectDB from './config/database';
+import apiRouter from './routes';
+
 const app = express();
+const PORT = process.env.PORT || 9501;
 
-const PORT = process.env.PORT;
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.get(
-    '/api/v1/health',
-    (request,response) => {
-        response
-            .status(200)
-            .send({
-                status:'ok'
-            })
+// Swagger Documentation
+//app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
-        app.use(
-            '/api/v1',
-            require('./routes/homestays/Homestays.route')
-        )
+// Routes
+app.use('/api/v1', apiRouter);
+
+// Health Check
+app.get('/api/v1/health', (req: Request, res: Response) => {
+    res.status(200).json({ status: 'ok', message: 'Server is healthy' });
+});
+
+// 404 Handler
+app.use((_req: Request, res: Response) => {
+    res.status(404).json({
+        success: false,
+        message: 'Endpoint not found'
+    });
+});
+
+// Global Error Handler
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+    console.error('Unhandled error:', err.message);
+    res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+    });
+});
+
+// Start Server
+const startServer = async () => {
+    try {
+        await connectDB();
+        app.listen(PORT, () => {
+            console.log(`
+╔═══════════════════════════════════════════════════════════╗
+║           Crop Management API Server v2.0                 ║
+╠═══════════════════════════════════════════════════════════╣
+║  Status:    Running                                       ║
+║  Port:      ${String(PORT).padEnd(45)}║
+║  Base URL:  http://localhost:${String(PORT).padEnd(30)}║
+║  API Base:  /api/v1                                       ║
+║  API Docs:  http://localhost:${PORT}/api/docs${' '.repeat(Math.max(0, 24 - String(PORT).length))}║
+║  Database:  MongoDB Connected                             ║
+╠═══════════════════════════════════════════════════════════╣
+║  Endpoints:                                               ║
+║  • GET  /api/v1/health      - Health check                ║
+║  • POST /api/v1/auth/*      - Authentication              ║
+║  • CRUD /api/v1/users       - User management             ║
+║  • CRUD /api/v1/crops       - Crop management             ║
+║  • CRUD /api/v1/fields      - Field management            ║
+║  • CRUD /api/v1/activities  - Activity management         ║
+╚═══════════════════════════════════════════════════════════╝
+            `);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
     }
-)
-app.listen(
-    9501,
-    () =>{
-        console.log(`server started again on port: ${PORT} `)
-    }
-);
+};
+
+startServer();
