@@ -6,14 +6,18 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "node --watch --env-file=.env --import=tsx src/server.ts",
+    "dev": "set MONGO_URI=mongodb://localhost:27017/crop-management&& node --watch --import=tsx src/server.ts",
     "version:major": "npm version major --no-git-tag-version",
     "version:minor": "npm version minor --no-git-tag-version",
     "version:patch": "npm version patch --no-git-tag-version"
   },
   "dependencies": {
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "express": "^5.2.1",
     "mongoose": "^9.0.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "tsx": "^4.21.0"
   },
   "devDependencies": {
@@ -23,4 +27,3 @@
   },
   "private": true
 }
-

@@ -1,6 +1,8 @@
 import express, { Request, Response, NextFunction } from 'express';
 import connectDB from './config/database';
 import apiRouter from './routes';
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './swagger.json';
 
 const app = express();
 const PORT = process.env.PORT || 9501;
@@ -10,7 +12,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Swagger Documentation
-//app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Routes
 app.use('/api/v1', apiRouter);

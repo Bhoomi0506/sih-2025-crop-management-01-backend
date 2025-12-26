@@ -1,0 +1,252 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Crop Management API",
+    "description": "API documentation for Crop Management System",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:9501/api/v1",
+      "description": "Local server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "role": { "type": "string", "enum": ["admin", "farmer", "expert"] }
+        }
+      },
+      "Crop": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "name": { "type": "string" },
+          "variety": { "type": "string" },
+          "season": { "type": "string" },
+          "sowingDate": { "type": "string", "format": "date" }
+        }
+      },
+      "Field": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "name": { "type": "string" },
+          "location": { "type": "string" },
+          "size": { "type": "number" }
+        }
+      },
+      "Activity": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "type": { "type": "string" },
+          "date": { "type": "string", "format": "date" },
+          "description": { "type": "string" }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "security": [],
+        "responses": {
+          "200": { "description": "Server is healthy" }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string" },
+                  "password": { "type": "string" },
+                  "role": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User created" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Login user",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login successful" }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "Get all users",
+        "responses": {
+          "200": { "description": "List of users" }
+        }
+      },
+      "post": {
+        "summary": "Create a user",
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } }
+        },
+        "responses": { "201": { "description": "User created" } }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Get user by ID",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "User details" } }
+      },
+      "put": {
+        "summary": "Update user",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } },
+        "responses": { "200": { "description": "User updated" } }
+      },
+      "delete": {
+        "summary": "Delete user",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "User deleted" } }
+      }
+    },
+    "/crops": {
+      "get": {
+        "summary": "Get all crops",
+        "responses": { "200": { "description": "List of crops" } }
+      },
+      "post": {
+        "summary": "Create a crop",
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Crop" } } }
+        },
+        "responses": { "201": { "description": "Crop created" } }
+      }
+    },
+    "/crops/{id}": {
+      "get": {
+        "summary": "Get crop by ID",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Crop details" } }
+      },
+      "put": {
+        "summary": "Update crop",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Crop" } } } },
+        "responses": { "200": { "description": "Crop updated" } }
+      },
+      "delete": {
+        "summary": "Delete crop",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Crop deleted" } }
+      }
+    },
+    "/fields": {
+      "get": {
+        "summary": "Get all fields",
+        "responses": { "200": { "description": "List of fields" } }
+      },
+      "post": {
+        "summary": "Create a field",
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Field" } } }
+        },
+        "responses": { "201": { "description": "Field created" } }
+      }
+    },
+    "/fields/{id}": {
+      "get": {
+        "summary": "Get field by ID",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Field details" } }
+      },
+      "put": {
+        "summary": "Update field",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Field" } } } },
+        "responses": { "200": { "description": "Field updated" } }
+      },
+      "delete": {
+        "summary": "Delete field",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Field deleted" } }
+      }
+    },
+    "/activities": {
+      "get": {
+        "summary": "Get all activities",
+        "responses": { "200": { "description": "List of activities" } }
+      },
+      "post": {
+        "summary": "Create an activity",
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Activity" } } }
+        },
+        "responses": { "201": { "description": "Activity created" } }
+      }
+    },
+    "/activities/{id}": {
+      "get": {
+        "summary": "Get activity by ID",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Activity details" } }
+      },
+      "put": {
+        "summary": "Update activity",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Activity" } } } },
+        "responses": { "200": { "description": "Activity updated" } }
+      },
+      "delete": {
+        "summary": "Delete activity",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Activity deleted" } }
+      }
+    }
+  }
+}
