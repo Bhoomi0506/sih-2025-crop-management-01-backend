@@ -1,0 +1,22 @@
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message?: string;
+  data?: T;
+  meta?: {
+    page?: number;
+    limit?: number;
+    total?: number;
+    totalPages?: number;
+    [key: string]: any;
+  };
+  errors?: any[];
+}
+
+export interface PaginatedResponse<T> extends ApiResponse<T[]> {
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}

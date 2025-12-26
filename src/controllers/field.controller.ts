@@ -1,15 +1,13 @@
 import { Request, Response } from 'express';
 import Field from '../models/field.model';
-import { logActivity } from '../middleware/activityLogger.middleware'; // ADD THIS LINE
-import mongoose from 'mongoose'; // ADD THIS LINE
+import { logActivity } from '../middleware/activityLogger.middleware';
+import mongoose from 'mongoose';
 
 export const createField = async (req: Request, res: Response) => {
   try {
-    const field = await Field.create(req.body);
+    const field = (await Field.create(req.body)) as any;
 
-    // Integrate activity logging for Field creation
-    // Assuming req.user is populated by an authentication middleware
-    const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f'); // Placeholder
+    const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f');
 
     await logActivity(
         userId,
@@ -17,8 +15,7 @@ export const createField = async (req: Request, res: Response) => {
         'Field',
         field._id,
         {
-            fieldName: field.name, // Example detail
-            // Other relevant details from req.body could be added here
+            fieldName: field.name,
         }
     );
 
@@ -53,31 +50,29 @@ export const getFieldById = async (req: Request, res: Response) => {
 export const updateField = async (req: Request, res: Response) => {
     try {
         const fieldId = req.params.id;
-        const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f'); // Placeholder
+        const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f');
 
-        // Fetch the field before update
         const fieldBeforeUpdate = await Field.findById(fieldId);
         if (!fieldBeforeUpdate) {
             res.status(404).json({ success: false, message: 'Field not found' });
             return;
         }
 
-        const field = await Field.findByIdAndUpdate(fieldId, req.body, { new: true, runValidators: true });
-        if (!field) { // This check is mostly redundant if fieldBeforeUpdate was found
+        const field = (await Field.findByIdAndUpdate(fieldId, req.body, { new: true, runValidators: true })) as any;
+        if (!field) {
             res.status(404).json({ success: false, message: 'Field not found' });
             return;
         }
 
-        // Integrate activity logging for Field update
         await logActivity(
             userId,
             'FIELD_UPDATED',
             'Field',
             field._id,
             {
-                before: fieldBeforeUpdate.toObject(), // Capture 'before' state
-                after: field.toObject(), // Capture 'after' state
-                changes: req.body, // Capture what was sent in the request body for change context
+                before: fieldBeforeUpdate.toObject(),
+                after: field.toObject(),
+                changes: req.body,
             }
         );
 
@@ -90,9 +85,8 @@ export const updateField = async (req: Request, res: Response) => {
 export const deleteField = async (req: Request, res: Response) => {
     try {
         const fieldId = req.params.id;
-        const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f'); // Placeholder
+        const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f');
 
-        // Fetch the field before deletion
         const fieldToDelete = await Field.findById(fieldId);
         if (!fieldToDelete) {
             res.status(404).json({ success: false, message: 'Field not found' });
@@ -100,21 +94,19 @@ export const deleteField = async (req: Request, res: Response) => {
         }
 
         const field = await Field.findByIdAndDelete(fieldId);
-        // This check is redundant if fieldToDelete was found, but good practice
         if (!field) {
             res.status(404).json({ success: false, message: 'Field not found' });
             return;
         }
 
-        // Integrate activity logging for Field deletion
         await logActivity(
             userId,
             'FIELD_DELETED',
             'Field',
-            fieldId, // Use the ID of the deleted field
+            new mongoose.Types.ObjectId(fieldId), // Cast string ID to ObjectId
             {
-                fieldName: fieldToDelete.name, // Example detail: name of the deleted field
-                deletedFieldData: fieldToDelete.toObject(), // Optionally log full data of deleted field
+                fieldName: fieldToDelete.name,
+                deletedFieldData: fieldToDelete.toObject(),
             }
         );
 

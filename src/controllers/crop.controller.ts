@@ -1,15 +1,14 @@
 import { Request, Response } from 'express';
 import Crop from '../models/crop.model';
-import { logActivity } from '../middleware/activityLogger.middleware'; // ADD THIS LINE
-import mongoose from 'mongoose'; // ADD THIS LINE
+import { logActivity } from '../middleware/activityLogger.middleware';
+import mongoose from 'mongoose';
 
 export const createCrop = async (req: Request, res: Response) => {
   try {
-    const crop = await Crop.create(req.body);
+    const crop = (await Crop.create(req.body)) as any;
 
     // Integrate activity logging for Crop creation
-    // Assuming req.user is populated by an authentication middleware
-    const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f'); // Placeholder
+    const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f');
 
     await logActivity(
         userId,
@@ -17,8 +16,7 @@ export const createCrop = async (req: Request, res: Response) => {
         'Crop',
         crop._id,
         {
-            cropName: crop.name, // Example detail
-            // Other relevant details from req.body could be added here
+            cropName: crop.name,
         }
     );
 
@@ -53,32 +51,29 @@ export const getCropById = async (req: Request, res: Response) => {
 export const updateCrop = async (req: Request, res: Response) => {
     try {
         const cropId = req.params.id;
-        // Assuming req.user is populated by an authentication middleware
-        const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f'); // Placeholder
+        const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f');
 
-        // Fetch the crop before update
         const cropBeforeUpdate = await Crop.findById(cropId);
         if (!cropBeforeUpdate) {
             res.status(404).json({ success: false, message: 'Crop not found' });
             return;
         }
 
-        const crop = await Crop.findByIdAndUpdate(cropId, req.body, { new: true, runValidators: true }); // Added runValidators: true
+        const crop = (await Crop.findByIdAndUpdate(cropId, req.body, { new: true, runValidators: true })) as any;
         if (!crop) {
             res.status(404).json({ success: false, message: 'Crop not found' });
             return;
         }
 
-        // Integrate activity logging for Crop update
         await logActivity(
             userId,
             'CROP_UPDATED',
             'Crop',
             crop._id,
             {
-                before: cropBeforeUpdate.toObject(), // Capture 'before' state
-                after: crop.toObject(), // Capture 'after' state
-                changes: req.body, // Capture what was sent in the request body for change context
+                before: cropBeforeUpdate.toObject(),
+                after: crop.toObject(),
+                changes: req.body,
             }
         );
 
@@ -91,9 +86,8 @@ export const updateCrop = async (req: Request, res: Response) => {
 export const deleteCrop = async (req: Request, res: Response) => {
     try {
         const cropId = req.params.id;
-        const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f'); // Placeholder
+        const userId = (req as any).user?._id || new mongoose.Types.ObjectId('60d0fe4f5b5e7e001c8c9c0f');
 
-        // Fetch the crop before deletion
         const cropToDelete = await Crop.findById(cropId);
         if (!cropToDelete) {
             res.status(404).json({ success: false, message: 'Crop not found' });
@@ -101,21 +95,19 @@ export const deleteCrop = async (req: Request, res: Response) => {
         }
 
         const crop = await Crop.findByIdAndDelete(cropId);
-        // This check is redundant if cropToDelete was found, but good practice
         if (!crop) {
             res.status(404).json({ success: false, message: 'Crop not found' });
             return;
         }
 
-        // Integrate activity logging for Crop deletion
         await logActivity(
             userId,
             'CROP_DELETED',
             'Crop',
-            cropId, // Use the ID of the deleted crop
+            new mongoose.Types.ObjectId(cropId), // Cast string ID to ObjectId
             {
-                cropName: cropToDelete.name, // Example detail: name of the deleted crop
-                deletedCropData: cropToDelete.toObject(), // Optionally log full data of deleted crop
+                cropName: cropToDelete.name,
+                deletedCropData: cropToDelete.toObject(),
             }
         );
 
