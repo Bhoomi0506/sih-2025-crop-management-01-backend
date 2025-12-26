@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+    mongodb:
+        image: mongo:7
+        container_name: crop-management-mongodb
+        restart: unless-stopped
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:bhoomi0501}
+            MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-pass@123}
+            MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-crop-management}
+            MONGO_APP_USER: ${MONGO_APP_USER:-bhoomi0501}
+            MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD:-pass@123}
+            MONGO_DATABASE: ${MONGO_DATABASE:-crop-management}
+        ports:
+            - "${MONGO_PORT:-27017}:27017"
+        volumes:
+            - mongodb_data:/data/db
+            - ./docker/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
+        networks:
+            - backend-network
+        healthcheck:
+            test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
+
+volumes:
+    mongodb_data:
+        driver: local
+
+networks:
+    backend-network:
+        driver: bridge
