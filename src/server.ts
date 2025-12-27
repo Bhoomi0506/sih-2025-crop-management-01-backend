@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
 import connectDB from './config/database';
 import apiRouter from './routes';
 import swaggerUi from 'swagger-ui-express';
@@ -8,6 +9,8 @@ const app = express();
 const PORT = process.env.PORT || 9501;
 
 // Middleware
+app.use(cors()); // Enable CORS for all routes
+app.options('*', cors()); // Enable pre-flight across-the-board
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
